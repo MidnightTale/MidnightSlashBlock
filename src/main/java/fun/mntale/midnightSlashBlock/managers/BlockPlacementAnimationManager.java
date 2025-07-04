@@ -69,9 +69,9 @@ public class BlockPlacementAnimationManager {
         BlockDisplay display = world.spawn(start, BlockDisplay.class, e -> {
             e.setBlock(blockData);
             e.setTransformation(startTransform);
-            e.setTeleportDuration(2);
-            e.setInterpolationDuration(2);
-            e.setInterpolationDelay(0);
+            e.setTeleportDuration(4);
+            e.setInterpolationDuration(10);
+            e.setInterpolationDelay(2);
         });
         int steps = 14;
         int interval = 2; // ticks between steps
@@ -84,22 +84,26 @@ public class BlockPlacementAnimationManager {
                 Location next = new Location(world, pos.x, pos.y, pos.z);
                 display.setTeleportDuration(interval);
                 display.teleportAsync(next);
-                // Dynamic rotation
-                float angleY = (float)Math.toRadians(step * 20.0);
-                float angleX = (float)Math.toRadians(10.0 * Math.sin(Math.PI * t));
-                AxisAngle4f rotation = new AxisAngle4f(angleY, 0, 1, 0);
-                AxisAngle4f rotationX = new AxisAngle4f(angleX, 1, 0, 0);
-                // Scale: pop effect (overshoot then settle)
+                // Dynamic, physically-inspired rotation
+                float spinProgress = 1f - t; // 1 at start, 0 at end
+                float ySpin = (float) Math.toRadians(720 * spinProgress * spinProgress); // 2 full spins, ease out
+                float xWobble = (float) Math.toRadians(15 * Math.sin(Math.PI * t) * spinProgress); // max 15°, fades out
+                AxisAngle4f rotY = new AxisAngle4f(ySpin, 0, 1, 0);
+                AxisAngle4f rotX = new AxisAngle4f(xWobble, 1, 0, 0);
+                // rotZ removed since it's not used
+                // Compose: Y, then X, then Z (approximate by applying Y, then X, then Z)
+                // Paper/MC multiplies these in order for the display entity
                 float scale = (t < 0.85f)
                     ? 0.3f + 0.8f * t
                     : 1.1f - 0.1f * ((t - 0.85f) / 0.15f);
                 scale = Math.max(0.3f, Math.min(scale, 1.1f));
                 display.setTransformation(new Transformation(
                     new Vector3f(0, 0, 0),
-                    rotation,
+                    rotY,
                     new Vector3f(scale, scale, scale),
-                    rotationX
+                    rotX // X wobble (Paper only supports two axes, so use X for secondary)
                 ));
+                // For Z wobble, you could alternate between X and Z every frame for extra effect, or combine with X if supported
             }, i * interval);
         }
         // Fade/pop and finish at the end

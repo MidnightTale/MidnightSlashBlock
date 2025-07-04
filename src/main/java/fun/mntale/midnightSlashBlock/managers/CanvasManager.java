@@ -32,6 +32,9 @@ public class CanvasManager {
             for (int z = min; z <= max; z++) {
                 BlockPos pos = new BlockPos(x, baseY, z);
                 world.setBlockAndUpdate(pos, baseBlock);
+                // Add barrier under canvas
+                BlockPos barrierPos = new BlockPos(x, baseY - 1, z);
+                world.setBlockAndUpdate(barrierPos, net.minecraft.world.level.block.Blocks.BARRIER.defaultBlockState());
             }
         }
         plugin.getConfig().set("canvas-initialized", true);

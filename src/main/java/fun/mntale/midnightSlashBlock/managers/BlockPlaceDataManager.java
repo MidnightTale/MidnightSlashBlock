@@ -6,15 +6,15 @@ import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class BlockPlaceDataManager {
     private final Plugin plugin;
     private final File dataFile;
     private FileConfiguration dataConfig;
-    private final Map<UUID, Integer> blockCounts = new HashMap<>();
+    private final Map<UUID, Integer> blockCounts = new ConcurrentHashMap<>();;
 
     public BlockPlaceDataManager(Plugin plugin) {
         this.plugin = plugin;

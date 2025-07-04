@@ -15,16 +15,20 @@ import net.minecraft.server.level.ServerLevel;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.UUID;
 import fun.mntale.midnightSlashBlock.managers.BlockPlaceDataManager;
+import fun.mntale.midnightSlashBlock.managers.BlockPlacementMetaManager;
+import fun.mntale.midnightSlashBlock.managers.BlockInspectorService;
 
 public final class MidnightSlashBlock extends JavaPlugin {
     private CanvasManager canvasManager;
     private CanvasWorldManager canvasWorldManager;
-    public static final long COOLDOWN_MS = 60000;
+    public static final long COOLDOWN_MS = 1000;
     public static final java.util.concurrent.ConcurrentMap<UUID, Long> cooldowns = new ConcurrentHashMap<>();
     public static final java.util.concurrent.ConcurrentMap<UUID, net.minecraft.core.BlockPos> pendingPlacements = new ConcurrentHashMap<>();
     public static final java.util.Set<UUID> openColorPickers = ConcurrentHashMap.newKeySet();
     private static BlockPlaceDataManager blockPlaceDataManager;
+    private static BlockPlacementMetaManager blockPlacementMetaManager;
     public static BlockPlaceDataManager getBlockPlaceDataManager() { return blockPlaceDataManager; }
+    public static BlockPlacementMetaManager getBlockPlacementMetaManager() { return blockPlacementMetaManager; }
 
     @Override
     public void onEnable() {
@@ -77,6 +81,8 @@ public final class MidnightSlashBlock extends JavaPlugin {
             }
         }
         blockPlaceDataManager = new BlockPlaceDataManager(this);
+        blockPlacementMetaManager = new BlockPlacementMetaManager(this);
+        new BlockInspectorService(this, blockPlacementMetaManager);
         getLogger().info("[DEBUG] MidnightSlashBlock onEnable end");
     }
 

@@ -12,8 +12,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class BlockPlacementHandler {
+    private static final Set<UUID> animatingPlayers = ConcurrentHashMap.newKeySet();
+
     public static final Map<Material, BlockState> ALL_PICKER_BLOCKS_TO_NMS = Map.ofEntries(
             // Red
             Map.entry(Material.RED_CONCRETE, net.minecraft.world.level.block.Blocks.RED_CONCRETE.defaultBlockState()),
@@ -109,23 +113,29 @@ public class BlockPlacementHandler {
 
     public static void handleBlockPlacement(Player player, Material material, BlockPos pos) {
         UUID uuid = player.getUniqueId();
+        // Prevent double placement during animation
+        if (animatingPlayers.contains(uuid)) {
+            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.5f);
+            return;
+        }
+        animatingPlayers.add(uuid);
         // Cooldown check
         if (fun.mntale.midnightSlashBlock.managers.BlockCooldownManager.isOnCooldown(uuid)) {
-            player.closeInventory();
             player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.5f); // Fail/cooldown sound
+            animatingPlayers.remove(uuid);
             return;
         }
         BlockState nmsState = ALL_PICKER_BLOCKS_TO_NMS.get(material);
         if (nmsState == null) {
             player.sendMessage("§cInvalid color selected.");
-            player.closeInventory();
+            animatingPlayers.remove(uuid);
             return;
         }
         // Animate placement
         Plugin plugin = Bukkit.getPluginManager().getPlugin("MidnightSlashBlock");
         if (plugin == null) {
             player.sendMessage("§cPlugin not loaded.");
-            player.closeInventory();
+            animatingPlayers.remove(uuid);
             return;
         }
         Location loc = new Location(player.getWorld(), pos.getX(), pos.getY(), pos.getZ());
@@ -135,10 +145,27 @@ public class BlockPlacementHandler {
             nmsWorld.setBlockAndUpdate(pos, nmsState);
             BlockCooldownManager.setCooldown(uuid);
             fun.mntale.midnightSlashBlock.MidnightSlashBlock.getBlockPlaceDataManager().incrementBlockCount(uuid);
+            // Broadcast global message
+            fun.mntale.midnightSlashBlock.utils.BlockColorUtil.BlockColorInfo colorInfo = fun.mntale.midnightSlashBlock.utils.BlockColorUtil.BLOCK_COLOR_INFO.get(material);
+            String colorHex = colorInfo != null ? colorInfo.hex() : "#AAAAAA";
+            String blockName = colorInfo != null ? colorInfo.name() : material.name();
+            String msg = String.format("<gray><bold>%s</bold> placed <color:%s><bold>%s</bold></color> at <yellow>%d %d %d</yellow></gray>",
+                player.getName(), colorHex, blockName, pos.getX(), pos.getY(), pos.getZ());
+            net.kyori.adventure.text.Component component = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(msg);
+            org.bukkit.Bukkit.getServer().sendMessage(component);
             // Immersive feedback: sound and particles
             player.getWorld().playSound(loc, org.bukkit.Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.2f);
             player.getWorld().spawnParticle(org.bukkit.Particle.END_ROD, loc.clone().add(0.5, 1, 0.5), 20, 0.2, 0.4, 0.2, 0.01);
-            player.closeInventory();
+            // Record block placement metadata
+            fun.mntale.midnightSlashBlock.MidnightSlashBlock.getBlockPlacementMetaManager().recordPlacement(
+                player.getWorld(),
+                pos.getX(), pos.getY(), pos.getZ(),
+                player.getUniqueId(),
+                player.getName(),
+                material,
+                System.currentTimeMillis()
+            );
+            animatingPlayers.remove(uuid);
         });
     }
 } 

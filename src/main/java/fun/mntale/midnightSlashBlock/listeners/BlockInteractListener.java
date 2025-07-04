@@ -30,11 +30,41 @@ public class BlockInteractListener implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        if (player.getInventory().getItemInMainHand().getType() == Material.SPYGLASS) return;
+        // Blaze rod: cycle through 5 fly speed modes
+        if (event.getHand() == EquipmentSlot.HAND && event.getAction().toString().contains("RIGHT") && event.getPlayer().getInventory().getItemInMainHand().getType() == Material.BLAZE_ROD) {
+            org.bukkit.NamespacedKey speedKey = new org.bukkit.NamespacedKey(player.getServer().getPluginManager().getPlugin("MidnightSlashBlock"), "fly_speed_mode");
+            int[] colors = {0x00FFFF, 0x00FF00, 0xFFFF00, 0xFFA500, 0xFF5555};
+            String[] labels = {"Very Slow", "Slow", "Normal", "Fast", "Very Fast"};
+            float[] speeds = {0.05f, 0.1f, 0.2f, 0.3f, 0.5f};
+            int mode = player.getPersistentDataContainer().getOrDefault(speedKey, org.bukkit.persistence.PersistentDataType.INTEGER, 2); // default to Normal
+            mode = (mode + 1) % 5;
+            player.getPersistentDataContainer().set(speedKey, org.bukkit.persistence.PersistentDataType.INTEGER, mode);
+            player.setFlySpeed(speeds[mode]);
+            String color = String.format("#%06X", colors[mode]);
+            String msg = String.format("<bold><color:%s>Fly speed: %s</color>", color, labels[mode]);
+            player.sendActionBar(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(msg));
+            event.setCancelled(true);
+            // Update blaze rod lore in main hand
+            org.bukkit.inventory.ItemStack rod = player.getInventory().getItemInMainHand();
+            if (rod.getType() == org.bukkit.Material.BLAZE_ROD) {
+                org.bukkit.inventory.meta.ItemMeta meta = rod.getItemMeta();
+                java.util.List<net.kyori.adventure.text.Component> lore = new java.util.ArrayList<>();
+                for (int i = 0; i < labels.length; i++) {
+                    String prefix = (i == mode) ? "> " : "";
+                    String colorTag = (i == mode) ? "<green>" : "<gray>";
+                    lore.add(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(colorTag + prefix + labels[i]));
+                }
+                meta.lore(lore);
+                rod.setItemMeta(meta);
+            }
+            return;
+        }
         if (event.getHand() != EquipmentSlot.HAND) return;
         Block clicked = event.getClickedBlock();
         if (clicked == null) return;
         if (clicked.getY() != CANVAS_Y || clicked.getX() < CANVAS_MIN || clicked.getX() > CANVAS_MAX || clicked.getZ() < CANVAS_MIN || clicked.getZ() > CANVAS_MAX) return;
-        Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
         MidnightSlashBlock.pendingPlacements.put(uuid, new net.minecraft.core.BlockPos(clicked.getX(), clicked.getY(), clicked.getZ()));
         BlockColorPickerGUI.openColorPicker(player);

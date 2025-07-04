@@ -9,9 +9,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
@@ -42,7 +42,7 @@ public class BlockColorPickerGUI {
         // Black
         List.of(Material.BLACK_CONCRETE, Material.BLACK_WOOL, Material.BLACK_TERRACOTTA, Material.BLACK_GLAZED_TERRACOTTA, Material.BLACK_CONCRETE_POWDER)
     );
-    private static final Map<UUID, Integer> playerPages = new HashMap<>();
+    private static final Map<UUID, Integer> playerPages = new ConcurrentHashMap<>();;
     private static final String PDC_PAGE_KEY = "color_picker_page";
     private static final Plugin PLUGIN = Bukkit.getPluginManager().getPlugin("MidnightSlashBlock");
 
@@ -121,7 +121,12 @@ public class BlockColorPickerGUI {
 
     public static void handleInventoryClick(Player player, int slot) {
         UUID uuid = player.getUniqueId();
-        int page = playerPages.getOrDefault(uuid, 0);
+        // Always get the current page from PDC for accuracy
+        int page = 0;
+        if (PLUGIN != null) {
+            Integer stored = player.getPersistentDataContainer().get(new NamespacedKey(PLUGIN, PDC_PAGE_KEY), PersistentDataType.INTEGER);
+            if (stored != null) page = stored;
+        }
         int totalPages = (int) Math.ceil((double) GRADIENTS.size() / GRADIENTS_PER_PAGE);
         int navRow = (ROWS - 1) * COLS;
         if (slot == navRow + 2 && page > 0) {
@@ -149,11 +154,13 @@ public class BlockColorPickerGUI {
                 if (col < gradient.size()) {
                     Material mat = gradient.get(col);
                     // Call your block placement handler here
+                    player.closeInventory();
+                    player.updateInventory();
                     fun.mntale.midnightSlashBlock.managers.BlockPlacementHandler.handleBlockPlacement(player, mat, fun.mntale.midnightSlashBlock.MidnightSlashBlock.pendingPlacements.get(uuid));
                     if (PLUGIN != null) {
                         player.getPersistentDataContainer().set(new NamespacedKey(PLUGIN, PDC_PAGE_KEY), PersistentDataType.INTEGER, page);
                     }
-                    player.closeInventory();
+                    // Do not close inventory here (let user keep picking)
                 }
             }
         }
