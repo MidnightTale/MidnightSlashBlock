@@ -1,0 +1,6 @@
+name: MidnightSlashBlock
+version: '1.0'
+main: fun.mntale.midnightSlashBlock.MidnightSlashBlock
+api-version: '1.21'
+authors: [ MidnightTale_ ]
+website: https://mntale.fun

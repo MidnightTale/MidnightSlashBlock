@@ -79,7 +79,15 @@ public class CanvasPlayerListener implements Listener {
             org.bukkit.inventory.meta.ItemMeta blazeMeta = blazeRod.getItemMeta();
             blazeMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gold>Fly Speed Selector"));
             blazeRod.setItemMeta(blazeMeta);
-            player.getInventory().addItem(stick, spyglass, blazeRod);
+            // Breeze Rod: Teleport Diamond
+            org.bukkit.inventory.ItemStack diamond = new org.bukkit.inventory.ItemStack(org.bukkit.Material.BREEZE_ROD);
+            org.bukkit.inventory.meta.ItemMeta diamondMeta = diamond.getItemMeta();
+            diamondMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<aqua>Teleport Block"));
+            java.util.List<net.kyori.adventure.text.Component> diamondLore = java.util.List.of(
+                net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gray>Right or left click to teleport 100 blocks forward!"));
+            diamondMeta.lore(diamondLore);
+            diamond.setItemMeta(diamondMeta);
+            player.getInventory().addItem(stick, spyglass, blazeRod, diamond);
             player.updateInventory();
             player.getPersistentDataContainer().set(starterKey, org.bukkit.persistence.PersistentDataType.BYTE, (byte)1);
         }
@@ -136,9 +144,16 @@ public class CanvasPlayerListener implements Listener {
     @org.bukkit.event.EventHandler
     public void onPlayerDropItem(org.bukkit.event.player.PlayerDropItemEvent event) {
         org.bukkit.Material type = event.getItemDrop().getItemStack().getType();
-        if (type == org.bukkit.Material.STICK || type == org.bukkit.Material.SPYGLASS || type == org.bukkit.Material.BLAZE_ROD) {
+        org.bukkit.inventory.ItemStack item = event.getItemDrop().getItemStack();
+        org.bukkit.entity.Player player = event.getPlayer();
+        org.bukkit.NamespacedKey diamondKey = new org.bukkit.NamespacedKey(plugin, "teleport_diamond");
+        boolean isTeleportDiamond = false;
+        if (item.hasItemMeta() && item.getItemMeta().getPersistentDataContainer().has(diamondKey, org.bukkit.persistence.PersistentDataType.BYTE)) {
+            isTeleportDiamond = true;
+        }
+        if (type == org.bukkit.Material.STICK || type == org.bukkit.Material.SPYGLASS || type == org.bukkit.Material.BLAZE_ROD || isTeleportDiamond) {
             event.setCancelled(true);
-            event.getPlayer().sendActionBar(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>You cannot drop this item!"));
+            player.sendActionBar(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>You cannot drop this item!"));
         }
     }
 
@@ -168,5 +183,11 @@ public class CanvasPlayerListener implements Listener {
         for (org.bukkit.entity.Player p : org.bukkit.Bukkit.getOnlinePlayers()) {
             p.sendMessage(component);
         }
+        event.setCancelled(true);
+    }
+
+    @org.bukkit.event.EventHandler
+    public void onPrepareItemCraft(org.bukkit.event.inventory.PrepareItemCraftEvent event) {
+        event.getInventory().setResult(null);
     }
 } 

@@ -63,6 +63,31 @@ public class BlockInteractListener implements Listener {
             }
             return;
         }
+        // Teleport Breeze Rod: teleport 100 blocks in look direction
+        if (event.getHand() == EquipmentSlot.HAND && (event.getAction().toString().contains("RIGHT") || event.getAction().toString().contains("LEFT")) && player.getInventory().getItemInMainHand().getType() == Material.BREEZE_ROD) {
+            org.bukkit.inventory.ItemStack breeze_rod = player.getInventory().getItemInMainHand();
+            if (breeze_rod.hasItemMeta()) {
+                org.bukkit.Location eye = player.getEyeLocation();
+                org.bukkit.util.Vector dir = eye.getDirection().normalize();
+                org.bukkit.Location dest = eye.clone().add(dir.multiply(100));
+                // Clamp Y to canvas Y or highest block at X/Z
+                org.bukkit.World world = player.getWorld();
+                int x = dest.getBlockX();
+                int z = dest.getBlockZ();
+                int y = 64; // Default canvas Y
+                if (world.isChunkLoaded(x >> 4, z >> 4)) {
+                    y = Math.max(world.getHighestBlockYAt(x, z) + 1, 64);
+                }
+                dest.setY(y + 0.5);
+                dest.setX(x + 0.5);
+                dest.setZ(z + 0.5);
+                player.teleportAsync(dest);
+                world.spawnParticle(org.bukkit.Particle.PORTAL, dest, 60, 0.5, 1, 0.5, 0.2);
+                world.playSound(dest, org.bukkit.Sound.ENTITY_ENDERMAN_TELEPORT, 1.2f, 1.1f);
+                event.setCancelled(true);
+                return;
+            }
+        }
         if (event.getHand() != EquipmentSlot.HAND) return;
         Block clicked = event.getClickedBlock();
         if (clicked == null) return;

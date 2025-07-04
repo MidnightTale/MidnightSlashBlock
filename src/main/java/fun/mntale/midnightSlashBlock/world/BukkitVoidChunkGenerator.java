@@ -24,7 +24,7 @@ public class BukkitVoidChunkGenerator extends ChunkGenerator {
     @Override
     public void generateSurface(@NotNull WorldInfo worldInfo, @NotNull Random random, int chunkX, int chunkZ, @NotNull ChunkData chunkData) {
         // Add a barrier layer at y = 63 (CANVAS_Y - 1) within the canvas bounds
-        final int CANVAS_Y = 64;
+        final int CANVAS_Y = 210;
         final int CANVAS_MIN = -256, CANVAS_MAX = 255;
         int minX = chunkX << 4;
         int minZ = chunkZ << 4;
