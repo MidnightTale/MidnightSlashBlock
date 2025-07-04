@@ -41,15 +41,11 @@ public class PlayerSizeCommand implements BasicCommand {
             player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Size must be between 0.1 and 10.0."));
             return;
         }
-        for (Player other : Bukkit.getOnlinePlayers()) {
-            if (!other.equals(player)) {
-                AttributeInstance attr = null;
-                try {
-                    attr = other.getAttribute(Attribute.valueOf("SCALE"));
-                } catch (IllegalArgumentException ignored) {}
-                if (attr != null) attr.setBaseValue(size);
-            }
-        }
-        player.sendMessage(MiniMessage.miniMessage().deserialize("<gray>Set player size to <yellow>" + size + "</yellow>!"));
+        AttributeInstance attr = null;
+        try {
+            attr = player.getAttribute(Attribute.valueOf("SCALE"));
+        } catch (IllegalArgumentException ignored) {}
+        if (attr != null) attr.setBaseValue(size);
+        player.sendMessage(MiniMessage.miniMessage().deserialize("<gray>Set your size to <yellow>" + size + "</yellow>!"));
     }
 } 
