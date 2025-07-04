@@ -70,8 +70,21 @@ public class BlockInteractListener implements Listener {
                 org.bukkit.Location eye = player.getEyeLocation();
                 org.bukkit.util.Vector dir = eye.getDirection().normalize();
                 org.bukkit.Location dest = eye.clone().add(dir.multiply(100));
-                // Clamp Y to canvas Y or highest block at X/Z
+                // Clamp X/Z to world border
                 org.bukkit.World world = player.getWorld();
+                org.bukkit.WorldBorder border = world.getWorldBorder();
+                double borderCenterX = border.getCenter().getX();
+                double borderCenterZ = border.getCenter().getZ();
+                double borderRadius = border.getSize() / 2.0 - 1.0; // 1 block margin
+                double minX = borderCenterX - borderRadius;
+                double maxX = borderCenterX + borderRadius;
+                double minZ = borderCenterZ - borderRadius;
+                double maxZ = borderCenterZ + borderRadius;
+                double clampedX = Math.max(minX, Math.min(dest.getX(), maxX));
+                double clampedZ = Math.max(minZ, Math.min(dest.getZ(), maxZ));
+                dest.setX(clampedX);
+                dest.setZ(clampedZ);
+                // Clamp Y to canvas Y or highest block at X/Z
                 int x = dest.getBlockX();
                 int z = dest.getBlockZ();
                 int y = 64; // Default canvas Y
@@ -79,8 +92,6 @@ public class BlockInteractListener implements Listener {
                     y = Math.max(world.getHighestBlockYAt(x, z) + 1, 64);
                 }
                 dest.setY(y + 0.5);
-                dest.setX(x + 0.5);
-                dest.setZ(z + 0.5);
                 player.teleportAsync(dest);
                 world.spawnParticle(org.bukkit.Particle.PORTAL, dest, 60, 0.5, 1, 0.5, 0.2);
                 world.playSound(dest, org.bukkit.Sound.ENTITY_ENDERMAN_TELEPORT, 1.2f, 1.1f);
