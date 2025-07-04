@@ -10,7 +10,7 @@ import org.bukkit.plugin.Plugin;
 public class CanvasManager {
     private final ServerLevel world;
     private final int size;
-    private final int baseY = 64;
+    private final int baseY = 210;
     private final BlockState baseBlock = Blocks.WHITE_CONCRETE.defaultBlockState();
     private final Plugin plugin;
 

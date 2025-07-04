@@ -56,7 +56,7 @@ public class CanvasPlayerListener implements Listener {
             player.setFlying(true);
             if (plugin != null) BlockInteractListener.startActionBarTask(player, (org.bukkit.plugin.java.JavaPlugin) plugin);
         }
-        // Set interaction range to 64
+        // Set interaction range to 64 (unchanged, if this is not canvas Y, leave as is)
         org.bukkit.attribute.AttributeInstance attr = player.getAttribute(org.bukkit.attribute.Attribute.BLOCK_INTERACTION_RANGE);
         if (attr != null) {
             attr.setBaseValue(64.0);
@@ -84,7 +84,7 @@ public class CanvasPlayerListener implements Listener {
             org.bukkit.inventory.meta.ItemMeta diamondMeta = diamond.getItemMeta();
             diamondMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<aqua>Teleport Block"));
             java.util.List<net.kyori.adventure.text.Component> diamondLore = java.util.List.of(
-                net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gray>Right or left click to teleport 100 blocks forward!"));
+                net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gray>Right or left click to teleport 50 blocks forward!"));
             diamondMeta.lore(diamondLore);
             diamond.setItemMeta(diamondMeta);
             player.getInventory().addItem(stick, spyglass, blazeRod, diamond);
