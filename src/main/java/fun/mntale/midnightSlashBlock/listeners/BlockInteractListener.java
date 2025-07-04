@@ -21,12 +21,14 @@ import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.util.concurrent.ConcurrentHashMap;
+import fun.mntale.midnightSlashBlock.utils.TablistUtil;
 
 public class BlockInteractListener implements Listener {
     private static final int CANVAS_Y = 64;
     private static final int CANVAS_MIN = -256, CANVAS_MAX = 255;
 
     private static final ConcurrentHashMap<UUID, Integer> actionBarTasks = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<UUID, Boolean> wasOnCooldown = new ConcurrentHashMap<>();
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
@@ -112,6 +114,11 @@ public class BlockInteractListener implements Listener {
                 return;
             }
             boolean onCooldown = BlockCooldownManager.isOnCooldown(uuid);
+            Boolean prev = wasOnCooldown.getOrDefault(uuid, false);
+            if (prev && !onCooldown) {
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.2f);
+            }
+            wasOnCooldown.put(uuid, onCooldown);
             int placeCount = fun.mntale.midnightSlashBlock.MidnightSlashBlock.getBlockPlaceDataManager().getBlockCount(uuid);
             String message;
             if (onCooldown) {
@@ -124,6 +131,7 @@ public class BlockInteractListener implements Listener {
             }
             Component actionBar = MiniMessage.miniMessage().deserialize(message);
             player.sendActionBar(actionBar);
+            TablistUtil.updateTablist(player, placeCount, onCooldown);
         }, 0L, 2L).getTaskId();
         actionBarTasks.put(uuid, taskId);
     }

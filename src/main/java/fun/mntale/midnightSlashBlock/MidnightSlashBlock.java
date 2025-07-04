@@ -21,7 +21,7 @@ import fun.mntale.midnightSlashBlock.managers.BlockInspectorService;
 public final class MidnightSlashBlock extends JavaPlugin {
     private CanvasManager canvasManager;
     private CanvasWorldManager canvasWorldManager;
-    public static final long COOLDOWN_MS = 1000;
+    public static final long COOLDOWN_MS = 1000 * 60;
     public static final java.util.concurrent.ConcurrentMap<UUID, Long> cooldowns = new ConcurrentHashMap<>();
     public static final java.util.concurrent.ConcurrentMap<UUID, net.minecraft.core.BlockPos> pendingPlacements = new ConcurrentHashMap<>();
     public static final java.util.Set<UUID> openColorPickers = ConcurrentHashMap.newKeySet();

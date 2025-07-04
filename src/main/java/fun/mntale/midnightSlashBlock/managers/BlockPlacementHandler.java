@@ -139,12 +139,16 @@ public class BlockPlacementHandler {
             return;
         }
         Location loc = new Location(player.getWorld(), pos.getX(), pos.getY(), pos.getZ());
+        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 1.4f);
         new BlockPlacementAnimationManager(plugin).playBlockPlacementAnimation(player, material, loc, () -> {
             ServerPlayer nmsPlayer = (ServerPlayer) ((CraftPlayer) player).getHandle();
             ServerLevel nmsWorld = (ServerLevel) nmsPlayer.level();
             nmsWorld.setBlockAndUpdate(pos, nmsState);
             BlockCooldownManager.setCooldown(uuid);
             fun.mntale.midnightSlashBlock.MidnightSlashBlock.getBlockPlaceDataManager().incrementBlockCount(uuid);
+            int blockCount = fun.mntale.midnightSlashBlock.MidnightSlashBlock.getBlockPlaceDataManager().getBlockCount(uuid);
+            fun.mntale.midnightSlashBlock.utils.TablistUtil.updateTablist(player, blockCount, true);
+            fun.mntale.midnightSlashBlock.utils.TablistUtil.updateTablistHeaderFooter();
             // Broadcast global message
             fun.mntale.midnightSlashBlock.utils.BlockColorUtil.BlockColorInfo colorInfo = fun.mntale.midnightSlashBlock.utils.BlockColorUtil.BLOCK_COLOR_INFO.get(material);
             String colorHex = colorInfo != null ? colorInfo.hex() : "#AAAAAA";

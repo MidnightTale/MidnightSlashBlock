@@ -73,4 +73,8 @@ public class BlockPlaceDataManager {
     public void setBlockCount(UUID uuid, int count) {
         blockCounts.put(uuid, count);
     }
+
+    public int getTotalBlockCount() {
+        return blockCounts.values().stream().mapToInt(Integer::intValue).sum();
+    }
 } 
