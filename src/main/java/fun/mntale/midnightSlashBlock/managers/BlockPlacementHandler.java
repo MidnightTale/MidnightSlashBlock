@@ -12,12 +12,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import java.util.Map;
 import java.util.UUID;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class BlockPlacementHandler {
-    private static final Set<UUID> animatingPlayers = ConcurrentHashMap.newKeySet();
-
     public static final Map<Material, BlockState> ALL_PICKER_BLOCKS_TO_NMS = Map.ofEntries(
             // Red
             Map.entry(Material.RED_CONCRETE, net.minecraft.world.level.block.Blocks.RED_CONCRETE.defaultBlockState()),
@@ -113,29 +109,21 @@ public class BlockPlacementHandler {
 
     public static void handleBlockPlacement(Player player, Material material, BlockPos pos) {
         UUID uuid = player.getUniqueId();
-        // Prevent double placement during animation
-        if (animatingPlayers.contains(uuid)) {
-            player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.5f);
-            return;
-        }
-        animatingPlayers.add(uuid);
         // Cooldown check
         if (fun.mntale.midnightSlashBlock.managers.BlockCooldownManager.isOnCooldown(uuid)) {
             player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.5f); // Fail/cooldown sound
-            animatingPlayers.remove(uuid);
             return;
         }
+        BlockCooldownManager.setCooldown(uuid); // Set cooldown immediately
         BlockState nmsState = ALL_PICKER_BLOCKS_TO_NMS.get(material);
         if (nmsState == null) {
             player.sendMessage("§cInvalid color selected.");
-            animatingPlayers.remove(uuid);
             return;
         }
         // Animate placement
         Plugin plugin = Bukkit.getPluginManager().getPlugin("MidnightSlashBlock");
         if (plugin == null) {
             player.sendMessage("§cPlugin not loaded.");
-            animatingPlayers.remove(uuid);
             return;
         }
         Location loc = new Location(player.getWorld(), pos.getX(), pos.getY(), pos.getZ());
@@ -144,7 +132,6 @@ public class BlockPlacementHandler {
             ServerPlayer nmsPlayer = (ServerPlayer) ((CraftPlayer) player).getHandle();
             ServerLevel nmsWorld = (ServerLevel) nmsPlayer.level();
             nmsWorld.setBlockAndUpdate(pos, nmsState);
-            BlockCooldownManager.setCooldown(uuid);
             fun.mntale.midnightSlashBlock.MidnightSlashBlock.getBlockPlaceDataManager().incrementBlockCount(uuid);
             int blockCount = fun.mntale.midnightSlashBlock.MidnightSlashBlock.getBlockPlaceDataManager().getBlockCount(uuid);
             fun.mntale.midnightSlashBlock.utils.TablistUtil.updateTablist(player, blockCount, true);
@@ -169,7 +156,6 @@ public class BlockPlacementHandler {
                 material,
                 System.currentTimeMillis()
             );
-            animatingPlayers.remove(uuid);
         });
     }
 } 

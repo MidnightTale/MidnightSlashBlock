@@ -71,7 +71,7 @@ public class BlockInspectorService implements Listener {
                     blockName = colorInfo.name();
                 }
                 String dateStr = dateFormat.format(new Date(meta.timestamp));
-                String msg = String.format("<color:%s><bold>%s</bold></color>\n<gray>Placed by <yellow>%s</yellow>\n<gray>at <white>%s</white>",
+                String msg = String.format("<color:%s><bold>%s</bold></color>\n<gray><yellow>%s</yellow>\n<gray><white>%s</white>",
                         colorHex, blockName, meta.playerName, dateStr);
                 Component text = MiniMessage.miniMessage().deserialize(msg);
                 String lastKey = lastBlockKey.get(player.getUniqueId());
