@@ -15,8 +15,8 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockBreakEvent;
 import fun.mntale.midnightSlashBlock.MidnightSlashBlock;
 import org.bukkit.event.player.PlayerQuitEvent;
-import fun.mntale.midnightSlashBlock.listeners.BlockInteractListener;
 import org.bukkit.plugin.Plugin;
+import fun.mntale.midnightSlashBlock.managers.BlockPlaceDataManager;
 
 public class CanvasPlayerListener implements Listener {
     private final World canvasWorld;
@@ -38,12 +38,15 @@ public class CanvasPlayerListener implements Listener {
             MidnightSlashBlock.openColorPickers.remove(player.getUniqueId());
             return;
         }
+        BlockPlaceDataManager dataManager = MidnightSlashBlock.getBlockPlaceDataManager();
+        if (dataManager != null) dataManager.loadPlayer(player.getUniqueId());
         if (plugin != null) BlockInteractListener.startActionBarTask(player, (org.bukkit.plugin.java.JavaPlugin) plugin);
         Location spawn = canvasWorld.getSpawnLocation();
-        player.setAllowFlight(true);
-        player.teleportAsync(spawn).thenRun(() -> {
-            
-        });
+        if (!player.getWorld().equals(canvasWorld)) {
+            player.teleportAsync(spawn).thenRun(() -> player.setAllowFlight(true));
+        } else {
+            player.setAllowFlight(true);
+        }
     }
 
     @EventHandler
@@ -92,6 +95,8 @@ public class CanvasPlayerListener implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         MidnightSlashBlock.openColorPickers.remove(player.getUniqueId());
+        BlockPlaceDataManager dataManager = MidnightSlashBlock.getBlockPlaceDataManager();
+        if (dataManager != null) dataManager.savePlayer(player.getUniqueId());
         BlockInteractListener.stopActionBarTask(player);
     }
 } 

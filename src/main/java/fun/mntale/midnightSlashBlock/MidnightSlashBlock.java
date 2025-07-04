@@ -14,6 +14,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.UUID;
+import fun.mntale.midnightSlashBlock.managers.BlockPlaceDataManager;
 
 public final class MidnightSlashBlock extends JavaPlugin {
     private CanvasManager canvasManager;
@@ -22,7 +23,8 @@ public final class MidnightSlashBlock extends JavaPlugin {
     public static final java.util.concurrent.ConcurrentMap<UUID, Long> cooldowns = new ConcurrentHashMap<>();
     public static final java.util.concurrent.ConcurrentMap<UUID, net.minecraft.core.BlockPos> pendingPlacements = new ConcurrentHashMap<>();
     public static final java.util.Set<UUID> openColorPickers = ConcurrentHashMap.newKeySet();
-    public static final java.util.concurrent.ConcurrentMap<UUID, Integer> blockChangeCount = new ConcurrentHashMap<>();
+    private static BlockPlaceDataManager blockPlaceDataManager;
+    public static BlockPlaceDataManager getBlockPlaceDataManager() { return blockPlaceDataManager; }
 
     @Override
     public void onEnable() {
@@ -74,11 +76,12 @@ public final class MidnightSlashBlock extends JavaPlugin {
                 getLogger().warning("[DEBUG] NMS world for 'canvas' is null! (eager)");
             }
         }
+        blockPlaceDataManager = new BlockPlaceDataManager(this);
         getLogger().info("[DEBUG] MidnightSlashBlock onEnable end");
     }
 
     @Override
     public void onDisable() {
-        // No save needed; canvas is persistent in world
+        if (blockPlaceDataManager != null) blockPlaceDataManager.saveAll();
     }
 }

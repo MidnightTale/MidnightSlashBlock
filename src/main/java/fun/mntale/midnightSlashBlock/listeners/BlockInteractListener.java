@@ -2,7 +2,6 @@ package fun.mntale.midnightSlashBlock.listeners;
 
 import fun.mntale.midnightSlashBlock.MidnightSlashBlock;
 import fun.mntale.midnightSlashBlock.managers.BlockCooldownManager;
-import fun.mntale.midnightSlashBlock.managers.BlockPlacementHandler;
 import fun.mntale.midnightSlashBlock.utils.BlockColorPickerGUI;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -19,10 +18,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import java.util.UUID;
-import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.Sound;
 import net.kyori.adventure.text.Component;
-import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -61,35 +57,20 @@ public class BlockInteractListener implements Listener {
         String plainTitle = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
         if (plainTitle.contains("Pick a Color")) {
             MidnightSlashBlock.openColorPickers.remove(uuid);
+            fun.mntale.midnightSlashBlock.utils.BlockColorPickerGUI.handleInventoryClose(player);
         }
     }
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        UUID uuid = player.getUniqueId();
         String plainTitle = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
         if (!plainTitle.contains("Pick a Color")) return;
         event.setCancelled(true);
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null || clicked.getType() == Material.AIR) return;
-
-        net.minecraft.core.BlockPos pos = MidnightSlashBlock.pendingPlacements.get(uuid);
-        if (pos == null) {
-            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.5f);
-            player.updateInventory();
-            return;
-        }
-        // Remove after successful check
-        MidnightSlashBlock.pendingPlacements.remove(uuid);
-
-        if (BlockCooldownManager.isOnCooldown(uuid)) {
-            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.5f);
-            player.updateInventory();
-            return;
-        }
-        BlockPlacementHandler.handleBlockPlacement(player, clicked.getType(), pos);
-        player.updateInventory();
+        int slot = event.getRawSlot();
+        fun.mntale.midnightSlashBlock.utils.BlockColorPickerGUI.handleInventoryClick(player, slot);
     }
 
     public static void startActionBarTask(Player player, JavaPlugin plugin) {
@@ -101,7 +82,7 @@ public class BlockInteractListener implements Listener {
                 return;
             }
             boolean onCooldown = BlockCooldownManager.isOnCooldown(uuid);
-            int placeCount = fun.mntale.midnightSlashBlock.MidnightSlashBlock.blockChangeCount.getOrDefault(uuid, 0);
+            int placeCount = fun.mntale.midnightSlashBlock.MidnightSlashBlock.getBlockPlaceDataManager().getBlockCount(uuid);
             String message;
             if (onCooldown) {
                 long left = BlockCooldownManager.getCooldownLeft(uuid);
