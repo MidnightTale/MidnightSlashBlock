@@ -87,7 +87,20 @@ public final class MidnightSlashBlock extends JavaPlugin {
         }
         blockPlaceDataManager = new BlockPlaceDataManager(this);
         blockPlacementMetaManager = new BlockPlacementMetaManager(this);
+        blockPlacementMetaManager.load(); // Migrate old data format
         new BlockInspectorService(this, blockPlacementMetaManager);
+        
+        // Periodic cache cleanup for block placement data (every 5 minutes)
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+            if (blockPlacementMetaManager != null) {
+                int cacheSize = blockPlacementMetaManager.getCacheSize();
+                if (cacheSize > 1000) { // Clear if more than 1000 positions cached
+                    blockPlacementMetaManager.clearCache();
+                    getLogger().info("Cleared block placement cache (" + cacheSize + " positions)");
+                }
+            }
+        }, 6000L, 6000L); // 5 minutes (6000 ticks)
+        
         // Register player view commands using BasicCommand
         BasicCommand centerCommand = new CenterCommand();
         registerCommand("center", centerCommand);
