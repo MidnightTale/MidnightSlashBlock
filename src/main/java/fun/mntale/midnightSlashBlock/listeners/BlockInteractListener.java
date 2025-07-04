@@ -63,16 +63,22 @@ public class BlockInteractListener implements Listener {
             }
             return;
         }
-        // Teleport Breeze Rod: teleport to first solid block in look direction (max 50 blocks)
+        // Teleport Breeze Rod: teleport to first solid block in look direction (max 50 blocks), or in air if no block
         if (event.getHand() == EquipmentSlot.HAND && (event.getAction().toString().contains("RIGHT") || event.getAction().toString().contains("LEFT")) && player.getInventory().getItemInMainHand().getType() == Material.BREEZE_ROD) {
             org.bukkit.inventory.ItemStack breeze_rod = player.getInventory().getItemInMainHand();
             if (breeze_rod.hasItemMeta()) {
                 org.bukkit.World world = player.getWorld();
                 org.bukkit.block.Block target = player.getTargetBlockExact(50);
-                if (target == null || target.getType().isAir()) {
-                    player.sendActionBar(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>No block in sight!"));
-                    event.setCancelled(true);
-                    return;
+                org.bukkit.Location dest;
+                if (target != null && !target.getType().isAir()) {
+                    // Teleport above block
+                    double y = target.getY() + 1.0;
+                    dest = new org.bukkit.Location(world, target.getX() + 0.5, y, target.getZ() + 0.5, player.getLocation().getYaw(), player.getLocation().getPitch());
+                } else {
+                    // Teleport in air 50 blocks forward
+                    org.bukkit.Location eye = player.getEyeLocation();
+                    org.bukkit.util.Vector dir = eye.getDirection().normalize();
+                    dest = eye.clone().add(dir.multiply(50));
                 }
                 // Clamp X/Z to world border
                 org.bukkit.WorldBorder border = world.getWorldBorder();
@@ -83,13 +89,13 @@ public class BlockInteractListener implements Listener {
                 double maxX = borderCenterX + borderRadius;
                 double minZ = borderCenterZ - borderRadius;
                 double maxZ = borderCenterZ + borderRadius;
-                double clampedX = Math.max(minX, Math.min(target.getX() + 0.5, maxX));
-                double clampedZ = Math.max(minZ, Math.min(target.getZ() + 0.5, maxZ));
-                double y = target.getY() + 1.0;
-                org.bukkit.Location dest = new org.bukkit.Location(world, clampedX, y, clampedZ, player.getLocation().getYaw(), player.getLocation().getPitch());
+                double clampedX = Math.max(minX, Math.min(dest.getX(), maxX));
+                double clampedZ = Math.max(minZ, Math.min(dest.getZ(), maxZ));
+                dest.setX(clampedX);
+                dest.setZ(clampedZ);
                 player.teleportAsync(dest);
                 world.spawnParticle(org.bukkit.Particle.PORTAL, dest, 60, 0.5, 1, 0.5, 0.2);
-                world.playSound(dest, org.bukkit.Sound.ENTITY_ENDERMAN_TELEPORT, 1.2f, 1.1f);
+                world.playSound(dest, org.bukkit.Sound.ENTITY_ENDERMAN_TELEPORT, 0.1f, 1.1f);
                 event.setCancelled(true);
                 return;
             }
