@@ -17,11 +17,16 @@ import java.util.UUID;
 import fun.mntale.midnightSlashBlock.managers.BlockPlaceDataManager;
 import fun.mntale.midnightSlashBlock.managers.BlockPlacementMetaManager;
 import fun.mntale.midnightSlashBlock.managers.BlockInspectorService;
+import fun.mntale.midnightSlashBlock.managers.PlayerViewSettingsManager;
+import io.papermc.paper.command.brigadier.BasicCommand;
+import fun.mntale.midnightSlashBlock.command.CenterCommand;
+import fun.mntale.midnightSlashBlock.command.HidePlayersCommand;
+import fun.mntale.midnightSlashBlock.command.PlayerSizeCommand;
+import fun.mntale.midnightSlashBlock.command.TopCommand;
 
 public final class MidnightSlashBlock extends JavaPlugin {
     private CanvasManager canvasManager;
     private CanvasWorldManager canvasWorldManager;
-    public static final long COOLDOWN_MS = 1000 * 60;
     public static final java.util.concurrent.ConcurrentMap<UUID, Long> cooldowns = new ConcurrentHashMap<>();
     public static final java.util.concurrent.ConcurrentMap<UUID, net.minecraft.core.BlockPos> pendingPlacements = new ConcurrentHashMap<>();
     public static final java.util.Set<UUID> openColorPickers = ConcurrentHashMap.newKeySet();
@@ -83,6 +88,15 @@ public final class MidnightSlashBlock extends JavaPlugin {
         blockPlaceDataManager = new BlockPlaceDataManager(this);
         blockPlacementMetaManager = new BlockPlacementMetaManager(this);
         new BlockInspectorService(this, blockPlacementMetaManager);
+        // Register player view commands using BasicCommand
+        BasicCommand centerCommand = new CenterCommand();
+        registerCommand("center", centerCommand);
+        BasicCommand hidePlayersCommand = new HidePlayersCommand(this);
+        registerCommand("hide", hidePlayersCommand);
+        BasicCommand playerSizeCommand = new PlayerSizeCommand(this);
+        registerCommand("size", playerSizeCommand);
+        BasicCommand topCommand = new TopCommand();
+        registerCommand("top", topCommand);
         getLogger().info("[DEBUG] MidnightSlashBlock onEnable end");
     }
 

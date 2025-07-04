@@ -18,6 +18,7 @@ import org.bukkit.plugin.Plugin;
 import fun.mntale.midnightSlashBlock.managers.BlockPlaceDataManager;
 import fun.mntale.midnightSlashBlock.utils.TablistUtil;
 import fun.mntale.midnightSlashBlock.managers.BlockCooldownManager;
+import fun.mntale.midnightSlashBlock.managers.PlayerViewSettingsManager;
 
 public class CanvasPlayerListener implements Listener {
     private final World canvasWorld;
@@ -59,7 +60,7 @@ public class CanvasPlayerListener implements Listener {
         // Set interaction range to 64 (unchanged, if this is not canvas Y, leave as is)
         org.bukkit.attribute.AttributeInstance attr = player.getAttribute(org.bukkit.attribute.Attribute.BLOCK_INTERACTION_RANGE);
         if (attr != null) {
-            attr.setBaseValue(64.0);
+            attr.setBaseValue(128.0);
         }
         // Give inspector and utility items only if not already given
         org.bukkit.NamespacedKey starterKey = new org.bukkit.NamespacedKey(plugin, "received_starter_items");
@@ -95,6 +96,16 @@ public class CanvasPlayerListener implements Listener {
         boolean onCooldown = BlockCooldownManager.isOnCooldown(player.getUniqueId());
         TablistUtil.updateTablist(player, blockCount, onCooldown);
         TablistUtil.updateTablistHeaderFooter();
+        // Hide this joining player from all players who have hide-players enabled
+        PlayerViewSettingsManager viewManager = new PlayerViewSettingsManager(plugin);
+        // If the joining player has hide ON, hide all other players from them
+        if (viewManager.isHidingPlayers(player)) {
+            for (Player other : org.bukkit.Bukkit.getOnlinePlayers()) {
+                if (!other.equals(player)) {
+                    player.hidePlayer(plugin, other);
+                }
+            }
+        }
     }
 
     @EventHandler
@@ -143,18 +154,7 @@ public class CanvasPlayerListener implements Listener {
 
     @org.bukkit.event.EventHandler
     public void onPlayerDropItem(org.bukkit.event.player.PlayerDropItemEvent event) {
-        org.bukkit.Material type = event.getItemDrop().getItemStack().getType();
-        org.bukkit.inventory.ItemStack item = event.getItemDrop().getItemStack();
-        org.bukkit.entity.Player player = event.getPlayer();
-        org.bukkit.NamespacedKey diamondKey = new org.bukkit.NamespacedKey(plugin, "teleport_diamond");
-        boolean isTeleportDiamond = false;
-        if (item.hasItemMeta() && item.getItemMeta().getPersistentDataContainer().has(diamondKey, org.bukkit.persistence.PersistentDataType.BYTE)) {
-            isTeleportDiamond = true;
-        }
-        if (type == org.bukkit.Material.STICK || type == org.bukkit.Material.SPYGLASS || type == org.bukkit.Material.BLAZE_ROD || isTeleportDiamond) {
-            event.setCancelled(true);
-            player.sendActionBar(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>You cannot drop this item!"));
-        }
+        event.setCancelled(true);
     }
 
     @org.bukkit.event.EventHandler
