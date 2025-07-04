@@ -2,13 +2,18 @@ package fun.mntale.midnightSlashBlock.world;
 
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.generator.WorldInfo;
+import org.bukkit.generator.BiomeProvider;
+import org.bukkit.block.Biome;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 /**
  * Modern Bukkit void world generator for 1.18+ (Paper 1.21+).
  * Uses new generation API: disables all vanilla generation steps for a pure void world.
+ * Sets all biomes to plains for a single-biome void world.
  */
 public class BukkitVoidChunkGenerator extends ChunkGenerator {
     @Override
@@ -29,5 +34,21 @@ public class BukkitVoidChunkGenerator extends ChunkGenerator {
     @Override
     public void generateCaves(@NotNull WorldInfo worldInfo, @NotNull Random random, int chunkX, int chunkZ, @NotNull ChunkData chunkData) {
         // Do nothing: no caves
+    }
+
+    @Override
+    public BiomeProvider getDefaultBiomeProvider(@NotNull WorldInfo worldInfo) {
+        return new BiomeProvider() {
+            @NotNull
+            @Override
+            public Biome getBiome(@NotNull WorldInfo worldInfo, int x, int y, int z) {
+                return Biome.THE_VOID;
+            }
+            @NotNull
+            @Override
+            public List<Biome> getBiomes(@NotNull WorldInfo worldInfo) {
+                return Collections.singletonList(Biome.THE_VOID);
+            }
+        };
     }
 } 
