@@ -67,7 +67,7 @@ public class CanvasPlayerListener implements Listener {
             // Stick: Block Inspector
             org.bukkit.inventory.ItemStack stick = new org.bukkit.inventory.ItemStack(org.bukkit.Material.STICK);
             org.bukkit.inventory.meta.ItemMeta stickMeta = stick.getItemMeta();
-            stickMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<aqua>Block Inspector"));
+            stickMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<aqua>Inspector Tool"));
             stick.setItemMeta(stickMeta);
             // Spyglass: Zoom Tool
             org.bukkit.inventory.ItemStack spyglass = new org.bukkit.inventory.ItemStack(org.bukkit.Material.SPYGLASS);
@@ -77,12 +77,12 @@ public class CanvasPlayerListener implements Listener {
             // Blaze Rod: Fly Speed Selector
             org.bukkit.inventory.ItemStack blazeRod = new org.bukkit.inventory.ItemStack(org.bukkit.Material.BLAZE_ROD);
             org.bukkit.inventory.meta.ItemMeta blazeMeta = blazeRod.getItemMeta();
-            blazeMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gold>Fly Speed Selector"));
+            blazeMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gold>Fly Speed Tool"));
             blazeRod.setItemMeta(blazeMeta);
             // Breeze Rod: Teleport Diamond
             org.bukkit.inventory.ItemStack diamond = new org.bukkit.inventory.ItemStack(org.bukkit.Material.BREEZE_ROD);
             org.bukkit.inventory.meta.ItemMeta diamondMeta = diamond.getItemMeta();
-            diamondMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<aqua>Teleport Block"));
+            diamondMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<aqua>Teleport Tool"));
             java.util.List<net.kyori.adventure.text.Component> diamondLore = java.util.List.of(
                 net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gray>Right or left click to teleport 50 blocks forward!"));
             diamondMeta.lore(diamondLore);

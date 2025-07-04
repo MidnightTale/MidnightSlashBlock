@@ -29,7 +29,7 @@ public class TablistUtil {
         if (below == null) below = scoreboard.registerNewObjective(
             "blocks_placed_below",
             Criteria.DUMMY,
-            Component.text("placed:"),
+            Component.text("placed"),
             RenderType.INTEGER
         );
         below.setDisplaySlot(DisplaySlot.BELOW_NAME);
@@ -42,7 +42,7 @@ public class TablistUtil {
         int online = Bukkit.getOnlinePlayers().size();
         net.kyori.adventure.text.Component header = MiniMessage.miniMessage().deserialize("<gradient:#00BFFF:#8A2BE2><bold>MN/Block</bold></gradient>");
         net.kyori.adventure.text.Component footer = MiniMessage.miniMessage().deserialize(
-            "<#FF5AF7>Total Blocks Placed: <#FFD700>" + total + "</#FFD700> <#3A3A4A>|</#3A3A4A> <#B266FF>Online: <#00FFD0>" + online + "</#00FFD0></#B266FF>"
+            "<#FF5AF7>Total Placed: <#FFD700>" + total + "</#FFD700> <#3A3A4A>|</#3A3A4A> <#B266FF>Online: <#00FFD0>" + online + "</#00FFD0></#B266FF>"
         );
         for (org.bukkit.entity.Player player : Bukkit.getOnlinePlayers()) {
             player.sendPlayerListHeader(header);
